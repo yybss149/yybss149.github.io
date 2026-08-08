@@ -125,12 +125,21 @@ namespace ZhiyuResourceManager
             grid.Columns.Add("note", "备注");
             main.Controls.Add(grid);
 
-            main.Resize += delegate
+            Action relayout = delegate
             {
-                inputPanel.Width = main.ClientSize.Width - 48;
-                toolbar.Width = main.ClientSize.Width - 48;
-                grid.Size = new System.Drawing.Size(main.ClientSize.Width - 48, main.ClientSize.Height - 258);
+                int width = Math.Max(100, main.ClientSize.Width - 48);
+                inputPanel.Width = width;
+                toolbar.Width = width;
+                grid.Size = new System.Drawing.Size(width, Math.Max(100, main.ClientSize.Height - 258));
+
+                // 明确计算位置，避免控件在父容器首次布局前被裁出可见范围。
+                addButton.Left = width - addButton.Width - 16;
+                noteBox.Width = Math.Max(140, addButton.Left - noteBox.Left - 16);
+                syncButton.Left = width - syncButton.Width;
+                deleteButton.Left = syncButton.Left - deleteButton.Width - 10;
             };
+            main.Resize += delegate { relayout(); };
+            Shown += delegate { relayout(); };
         }
 
         private void RefreshResources()
