@@ -1,0 +1,6 @@
+# MkDocs 每次构建时自动生成的网站文件，不需要上传
+site/
+
+# Python 自动缓存文件，不需要上传
+__pycache__/
+*.py[cod]

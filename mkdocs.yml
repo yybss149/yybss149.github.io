@@ -1,0 +1,22 @@
+site_name: 我的网站名称
+site_description: 一个简洁的个人网站
+
+theme:
+  name: material
+  language: zh
+  palette:
+    scheme: default
+    primary: white
+    accent: blue
+  features:
+    - navigation.tabs
+    - navigation.top
+
+nav:
+  - 主页: index.md
+  - 课程: course/index.md
+  - 友链: friends/index.md
+  - 关于: about/index.md
+
+extra_css:
+  - stylesheets/extra.css
