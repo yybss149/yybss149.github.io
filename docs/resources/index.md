@@ -1,8 +1,14 @@
-# 资源库
+<div class="resource-library" markdown>
 
-这里收集值得保存的工具、网站、文章与学习资料。
+<div class="resource-banner">
+  <p class="section-kicker">THE LITTLE ARCHIVE</p>
+  <h1>资源库</h1>
+  <p>献给旅途、创作与每一个值得保存的瞬间。</p>
+</div>
 
-## 推荐资源
+## 岛上收藏
+
+<div class="resource-grid" markdown>
 
 <!-- RESOURCE_MANAGER_START -->
 
@@ -10,11 +16,14 @@
 
 <!-- RESOURCE_MANAGER_END -->
 
-## 如何管理
+</div>
 
-运行本文件夹中的 `resource_manager.py` 后，在浏览器打开资源库管理器。只要输入网址和备注，就能添加或删除资源，内容会自动保存到本页；点击“同步到网站”即可自动发布到线上网站。
+<div class="resource-note">
+  <span>✦</span>
+  <p>通过本地的「资源库管理器」添加、删除并同步资源。每一次整理，都会让这座小岛更明亮一点。</p>
+</div>
 
-你也可以直接编辑本文件；请保留上方的 `RESOURCE_MANAGER_START` 和 `RESOURCE_MANAGER_END` 两行标记，管理器才能正常工作。
+</div>
 
 ```markdown
 - [我推荐的工具](my-tool.md)：我的使用心得。
