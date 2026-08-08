@@ -1,23 +1,357 @@
-/* 主页：简洁的纯白欢迎区 */
+/* 知屿：星海二次元游戏风 */
+:root {
+  --zhiyu-navy: #111533;
+  --zhiyu-indigo: #393379;
+  --zhiyu-lilac: #b6a8ff;
+  --zhiyu-pink: #f5b8dc;
+  --zhiyu-gold: #ffe2a2;
+  --zhiyu-paper: #fbfaff;
+}
+
+body {
+  background: var(--zhiyu-paper);
+}
+
+.md-header {
+  background: linear-gradient(105deg, #171640 0%, #2e276f 52%, #524298 100%);
+  box-shadow: 0 4px 24px rgba(23, 18, 68, .2);
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  filter: drop-shadow(0 0 6px rgba(255, 239, 182, .55));
+}
+
+.md-header__title,
+.md-tabs {
+  color: #fff;
+}
+
+.md-tabs {
+  background: linear-gradient(105deg, rgba(23, 22, 64, .96), rgba(61, 50, 126, .96));
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--zhiyu-gold);
+}
+
+.md-main {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(220, 204, 255, .3), transparent 27rem),
+    radial-gradient(circle at 88% 28%, rgba(255, 215, 239, .24), transparent 24rem),
+    var(--zhiyu-paper);
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-family: "Microsoft YaHei UI", "PingFang SC", sans-serif;
+  color: #28245c;
+}
+
+.md-typeset a {
+  color: #6654bd;
+}
+
+.md-typeset a:hover {
+  color: #c45d9c;
+}
+
+/* 首页 */
+body:has(.home-hero) .md-main {
+  background: #0d1030;
+}
+
+body:has(.home-hero) .md-content__inner {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+body:has(.home-hero) .md-content__inner::before {
+  display: none;
+}
+
 .home-hero {
-  min-height: 68vh;
+  position: relative;
+  isolation: isolate;
+  min-height: min(780px, calc(100vh - 4.8rem));
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  text-align: center;
+  overflow: hidden;
+  color: white;
+  background-image:
+    linear-gradient(90deg, rgba(11, 13, 45, .84) 0%, rgba(16, 16, 57, .54) 41%, rgba(18, 15, 53, .12) 74%, rgba(17, 12, 46, .24) 100%),
+    linear-gradient(0deg, rgba(13, 16, 48, .67) 0%, transparent 38%),
+    url("../assets/zhiyu-hero.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-glow {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 28% 36%, rgba(212, 184, 255, .22), transparent 18rem),
+    radial-gradient(circle at 50% 74%, rgba(255, 220, 188, .2), transparent 20rem);
+  animation: hero-breathe 8s ease-in-out infinite alternate;
+}
+
+@keyframes hero-breathe {
+  to { transform: scale(1.08); opacity: .72; }
+}
+
+.hero-content {
+  width: min(100% - 3rem, 67rem);
+  margin: 0 auto;
+  padding: 3rem 1rem 5rem;
+}
+
+.hero-kicker,
+.section-kicker {
+  margin: 0 0 1rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+}
+
+.hero-kicker {
+  color: #f7d9ff;
 }
 
 .home-hero h1 {
   margin: 0;
-  font-size: clamp(2.8rem, 8vw, 5.5rem);
+  font-size: clamp(4rem, 10vw, 7.2rem);
   font-weight: 700;
-  letter-spacing: -0.04em;
-  color: #111111;
+  letter-spacing: .1em;
+  color: #fffdf8;
+  text-shadow: 0 0 35px rgba(209, 193, 255, .54), 0 4px 16px rgba(12, 11, 48, .5);
 }
 
-.home-hero p {
-  margin-top: 1rem;
+.hero-tagline {
+  margin: 1.35rem 0 2.2rem;
+  color: #f4f0ff;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  letter-spacing: .08em;
+}
+
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding: .95rem 1.2rem 1rem 1.5rem;
+  border: 1px solid rgba(255, 248, 230, .65);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  color: white !important;
+  font-weight: 700;
+  text-decoration: none !important;
+  backdrop-filter: blur(8px);
+  transition: transform .25s ease, background .25s ease, box-shadow .25s ease;
+}
+
+.hero-button:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 244, 221, .23);
+  box-shadow: 0 9px 30px rgba(15, 12, 55, .35);
+}
+
+.hero-arrow {
+  font-size: 1.4rem;
+  line-height: 0;
+}
+
+.hero-scroll {
+  position: absolute;
+  right: max(2rem, calc((100vw - 67rem) / 2));
+  bottom: 1.8rem;
+  color: rgba(255, 255, 255, .75);
+  font-size: .63rem;
+  letter-spacing: .18em;
+}
+
+.hero-scroll span {
+  margin-left: .5rem;
+  color: var(--zhiyu-gold);
+  font-size: 1rem;
+}
+
+.home-afterglow {
+  position: relative;
+  padding: 5.7rem max(1.5rem, calc((100vw - 67rem) / 2));
+  color: #302861;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(213, 190, 255, .54), transparent 42%),
+    linear-gradient(180deg, #f8f5ff, #fffafd 74%, #f5f2ff);
+}
+
+.home-afterglow h2 {
+  max-width: 32rem;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1.25;
+  color: #29235b;
+}
+
+.section-kicker {
+  color: #8a6cba;
+}
+
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2.8rem;
+}
+
+.feature-card {
+  padding: 1.55rem;
+  border: 1px solid rgba(117, 97, 182, .14);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 14px 35px rgba(69, 44, 124, .09);
+  backdrop-filter: blur(10px);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(69, 44, 124, .14);
+}
+
+.feature-icon {
+  color: #9a75d2;
+  font-size: 1.4rem;
+}
+
+.feature-card h3 {
+  margin: .8rem 0 .45rem;
   font-size: 1.1rem;
-  color: #666666;
+}
+
+.feature-card p {
+  margin: 0;
+  color: #6d668b;
+  font-size: .92rem;
+  line-height: 1.75;
+}
+
+/* 资源库 */
+.resource-library {
+  padding: .5rem 0 3rem;
+}
+
+.resource-banner {
+  position: relative;
+  overflow: hidden;
+  margin: .5rem 0 2.5rem;
+  padding: 2.8rem clamp(1.5rem, 5vw, 3.5rem);
+  border-radius: 1.4rem;
+  color: #fff;
+  background:
+    linear-gradient(105deg, rgba(25, 23, 75, .91), rgba(68, 54, 139, .78)),
+    url("../assets/zhiyu-hero.png") center 57% / cover;
+  box-shadow: 0 16px 40px rgba(45, 32, 109, .2);
+}
+
+.resource-banner::after {
+  position: absolute;
+  top: -5rem;
+  right: 7%;
+  width: 13rem;
+  height: 13rem;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.7rem rgba(255,255,255,.06), 0 0 0 4.3rem rgba(255,255,255,.04);
+  content: "";
+}
+
+.resource-banner .section-kicker,
+.resource-banner h1,
+.resource-banner p {
+  position: relative;
+  z-index: 1;
+}
+
+.resource-banner .section-kicker { color: #f4d8ff; }
+.resource-banner h1 { margin: 0; color: #fff; font-size: clamp(2.6rem, 5vw, 4rem); }
+.resource-banner p:last-child { margin: .8rem 0 0; color: #eeebff; }
+
+.resource-library > h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+.resource-grid ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resource-grid li {
+  position: relative;
+  min-height: 5.2rem;
+  padding: 1.15rem 1.2rem 1.1rem 3rem;
+  border: 1px solid rgba(120, 99, 183, .16);
+  border-radius: 1rem;
+  background: rgba(255,255,255,.76);
+  box-shadow: 0 10px 25px rgba(67, 49, 126, .07);
+  color: #6d668b;
+  line-height: 1.65;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.resource-grid li::before {
+  position: absolute;
+  top: 1.12rem;
+  left: 1.2rem;
+  color: #a881db;
+  content: "✦";
+}
+
+.resource-grid li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(67, 49, 126, .13);
+}
+
+.resource-grid li a {
+  display: block;
+  margin-bottom: .15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.resource-note {
+  display: flex;
+  gap: .9rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+  padding: 1rem 1.2rem;
+  border: 1px dashed rgba(133, 105, 190, .4);
+  border-radius: .9rem;
+  color: #71698e;
+  background: rgba(243, 237, 255, .56);
+}
+
+.resource-note span { color: #9a75d2; font-size: 1.2rem; }
+.resource-note p { margin: 0; font-size: .9rem; line-height: 1.7; }
+
+@media screen and (max-width: 76.1875em) {
+  .home-afterglow { padding-inline: 2rem; }
+}
+
+@media screen and (max-width: 44.9375em) {
+  .home-hero { min-height: calc(100vh - 4.8rem); background-position: 61% center; }
+  .hero-content { padding-bottom: 4rem; }
+  .hero-scroll { right: 1.3rem; }
+  .home-afterglow { padding: 4rem 1.3rem; }
+  .home-features,
+  .resource-grid ul { grid-template-columns: 1fr; }
+  .resource-banner { padding: 2.2rem 1.4rem; }
+}
 }
