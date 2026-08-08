@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
+import threading
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -13,9 +15,11 @@ from urllib.parse import urlparse
 HOST = "127.0.0.1"
 PORT = 8001
 DOCUMENT = Path(__file__).parent / "docs" / "resources" / "index.md"
+ROOT = Path(__file__).parent
 START = "<!-- RESOURCE_MANAGER_START -->"
 END = "<!-- RESOURCE_MANAGER_END -->"
 RESOURCE_PATTERN = re.compile(r"^\s*-\s+\[([^\]]+)\]\(([^)]+)\)：\s*(.*)\s*$")
+SYNC_LOCK = threading.Lock()
 
 
 def read_document() -> tuple[str, list[dict[str, str]], str]:
@@ -66,6 +70,34 @@ def create_resource(url: str, note: str) -> dict[str, str]:
     return {"title": title, "url": url, "note": note}
 
 
+def run_git(*arguments: str) -> str:
+    """运行固定的 Git 命令；用户输入不会参与任何命令。"""
+    result = subprocess.run(
+        ["git", *arguments],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout).strip()
+        raise RuntimeError(message or "Git 操作失败，请检查网络和 GitHub 登录状态。")
+    return result.stdout.strip()
+
+
+def sync_to_github() -> str:
+    """仅提交资源库文件，再推送到已关联的 GitHub 仓库。"""
+    with SYNC_LOCK:
+        changes = run_git("status", "--porcelain", "--", "docs/resources/index.md")
+        if not changes:
+            return "没有新的资源改动，网站已经是最新状态。"
+        run_git("add", "--", "docs/resources/index.md")
+        run_git("commit", "-m", "Update resource library")
+        run_git("push")
+        return "已同步到 GitHub。网站通常会在 1～3 分钟内更新。"
+
+
 PAGE = """<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -80,6 +112,7 @@ PAGE = """<!doctype html>
     .intro { color: #667085; margin: 0 0 36px; }
     section { background: #fff; border: 1px solid #e6e8ef; border-radius: 16px; padding: 24px; box-shadow: 0 8px 30px #1c2b4a0a; }
     form { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 12px; }
+    .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; }
     input { min-width: 0; padding: 12px; border: 1px solid #cfd5e1; border-radius: 9px; font: inherit; }
     button { border: 0; border-radius: 9px; padding: 12px 16px; background: #2449d8; color: #fff; font: inherit; cursor: pointer; }
     button:hover { background: #1939b7; }
@@ -106,15 +139,19 @@ PAGE = """<!doctype html>
         <input id="note" type="text" placeholder="备注，例如：一个好用的设计工具" required>
         <button type="submit">添加资源</button>
       </form>
-      <p id="message" aria-live="polite"></p>
+      <div class="actions">
+        <p id="message" aria-live="polite"></p>
+        <button id="sync" type="button">同步到网站</button>
+      </div>
       <ul id="resource-list"></ul>
     </section>
-    <p class="footnote">提示：保存到本机后，需要把改动推送到 GitHub，线上网站才会更新。</p>
+    <p class="footnote">点击“同步到网站”后，GitHub Pages 通常会在 1～3 分钟内完成更新。</p>
   </main>
   <script>
     const list = document.querySelector('#resource-list');
     const message = document.querySelector('#message');
     const form = document.querySelector('#add-form');
+    const syncButton = document.querySelector('#sync');
 
     function showMessage(text, isError = false) {
       message.textContent = text;
@@ -179,6 +216,22 @@ PAGE = """<!doctype html>
       render(data.resources);
       showMessage('已添加并保存。');
     };
+
+    syncButton.onclick = async () => {
+      syncButton.disabled = true;
+      syncButton.textContent = '正在同步…';
+      showMessage('正在提交并推送到 GitHub…');
+      try {
+        const response = await fetch('/api/sync', { method: 'POST' });
+        const data = await response.json();
+        showMessage(data.message || data.error, !response.ok);
+      } catch (error) {
+        showMessage('无法连接管理器，请稍后重试。', true);
+      } finally {
+        syncButton.disabled = false;
+        syncButton.textContent = '同步到网站';
+      }
+    };
     load();
   </script>
 </body>
@@ -212,6 +265,12 @@ class ResourceManagerHandler(BaseHTTPRequestHandler):
             self.respond_json(HTTPStatus.NOT_FOUND, {"error": "找不到此页面。"})
 
     def do_POST(self) -> None:
+        if self.path == "/api/sync":
+            try:
+                message = sync_to_github()
+                return self.respond_json(HTTPStatus.OK, {"message": message})
+            except RuntimeError as error:
+                return self.respond_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
         if self.path != "/api/resources":
             return self.respond_json(HTTPStatus.NOT_FOUND, {"error": "找不到此页面。"})
         try:
