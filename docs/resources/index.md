@@ -4,21 +4,17 @@
 
 ## 推荐资源
 
-暂时还没有资源。你可以从下面的格式开始添加：
-
-```markdown
-- [资源名称](https://example.com/)：用一句话说明它有什么用。
-```
-
-例如：
+<!-- RESOURCE_MANAGER_START -->
 
 - [GitHub](https://github.com/)：存放代码、文档和个人项目的平台。
 
-## 如何自己添加
+<!-- RESOURCE_MANAGER_END -->
 
-直接打开这个文件，找到“推荐资源”部分，在最下面粘贴一行新的资源；保存后网站会自动更新。
+## 如何管理
 
-如果想写一篇较长的资源介绍：在 `docs/resources` 文件夹中新建一个 `.md` 文件，然后在本页加入链接，例如：
+运行本文件夹中的 `resource_manager.py` 后，在浏览器打开资源库管理器。只要输入网址和备注，就能添加或删除资源，内容会自动保存到本页。
+
+你也可以直接编辑本文件；请保留上方的 `RESOURCE_MANAGER_START` 和 `RESOURCE_MANAGER_END` 两行标记，管理器才能正常工作。
 
 ```markdown
 - [我推荐的工具](my-tool.md)：我的使用心得。
