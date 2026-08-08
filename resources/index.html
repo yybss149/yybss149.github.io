@@ -308,7 +308,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        如何自己添加
+        如何管理
       
     </span>
   </a>
@@ -364,7 +364,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        如何自己添加
+        如何管理
       
     </span>
   </a>
@@ -391,16 +391,16 @@
 <h1 id="_1">资源库</h1>
 <p>这里收集值得保存的工具、网站、文章与学习资料。</p>
 <h2 id="_2">推荐资源</h2>
-<p>暂时还没有资源。你可以从下面的格式开始添加：</p>
-<pre><code class="language-markdown">- [资源名称](https://example.com/)：用一句话说明它有什么用。
-</code></pre>
-<p>例如：</p>
+<!-- RESOURCE_MANAGER_START -->
+
 <ul>
 <li><a href="https://github.com/">GitHub</a>：存放代码、文档和个人项目的平台。</li>
 </ul>
-<h2 id="_3">如何自己添加</h2>
-<p>直接打开这个文件，找到“推荐资源”部分，在最下面粘贴一行新的资源；保存后网站会自动更新。</p>
-<p>如果想写一篇较长的资源介绍：在 <code>docs/resources</code> 文件夹中新建一个 <code>.md</code> 文件，然后在本页加入链接，例如：</p>
+<!-- RESOURCE_MANAGER_END -->
+
+<h2 id="_3">如何管理</h2>
+<p>运行本文件夹中的 <code>resource_manager.py</code> 后，在浏览器打开资源库管理器。只要输入网址和备注，就能添加或删除资源，内容会自动保存到本页。</p>
+<p>你也可以直接编辑本文件；请保留上方的 <code>RESOURCE_MANAGER_START</code> 和 <code>RESOURCE_MANAGER_END</code> 两行标记，管理器才能正常工作。</p>
 <pre><code class="language-markdown">- [我推荐的工具](my-tool.md)：我的使用心得。
 </code></pre>
 
