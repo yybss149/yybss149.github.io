@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import threading
@@ -14,8 +15,8 @@ from urllib.parse import urlparse
 
 HOST = "127.0.0.1"
 PORT = 8001
-DOCUMENT = Path(__file__).parent / "docs" / "resources" / "index.md"
-ROOT = Path(__file__).parent
+ROOT = Path(os.environ.get("ZHIYU_ROOT", Path(__file__).parent))
+DOCUMENT = ROOT / "docs" / "resources" / "index.md"
 START = "<!-- RESOURCE_MANAGER_START -->"
 END = "<!-- RESOURCE_MANAGER_END -->"
 RESOURCE_PATTERN = re.compile(r"^\s*-\s+\[([^\]]+)\]\(([^)]+)\)：\s*(.*)\s*$")

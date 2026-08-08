@@ -4,3 +4,7 @@ site/
 # Python 自动缓存文件，不需要上传
 __pycache__/
 *.py[cod]
+
+# 桌面版资源管理器的本机打包产物
+.build-resource-manager/
+资源库管理器.exe
