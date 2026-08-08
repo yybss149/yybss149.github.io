@@ -13,6 +13,7 @@
 <!-- RESOURCE_MANAGER_START -->
 
 - [GitHub](https://github.com/)：存放代码、文档和个人项目的平台。
+- [kdocs.cn](https://www.kdocs.cn/l/cvddWLY5Dvef)：游戏、影视、软件库
 
 <!-- RESOURCE_MANAGER_END -->
 
