@@ -80,6 +80,7 @@ namespace ZhiyuManager
         }
 
         private string DocumentPath { get { return Path.Combine(root, DocumentRelativePath); } }
+        private string WebsiteUrl { get { return isResource ? "https://yybss149.github.io/resources/" : "https://yybss149.github.io/reviews/"; } }
 
         public TabPage BuildTab()
         {
@@ -119,6 +120,10 @@ namespace ZhiyuManager
             remove.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(229, 197, 207);
             remove.Click += delegate { DeleteSelected(); };
             actions.Controls.Add(remove);
+            var openSite = new Button { Text = isResource ? "打开资料库网页" : "打开锐评网页", Dock = DockStyle.Right, Width = 126, FlatStyle = FlatStyle.Flat, BackColor = System.Drawing.Color.FromArgb(246, 243, 255), ForeColor = System.Drawing.Color.FromArgb(91, 72, 163) };
+            openSite.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(211, 202, 239);
+            openSite.Click += delegate { OpenWebsite(); };
+            actions.Controls.Add(openSite);
             tab.Controls.Add(actions);
 
             grid = new DataGridView
@@ -147,8 +152,29 @@ namespace ZhiyuManager
             if (isResource) grid.Columns.Add("url", "网址");
             grid.Columns.Add("detail", isResource ? "备注" : "槽点");
             tab.Controls.Add(grid);
+            tab.Controls.Add(new Label
+            {
+                Text = isResource ? "网站当前显示的资料" : "网站当前显示的电子锐评",
+                Dock = DockStyle.Top,
+                Height = 30,
+                Padding = new Padding(2, 7, 0, 0),
+                ForeColor = System.Drawing.Color.FromArgb(77, 68, 112),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold)
+            });
             Refresh();
             return tab;
+        }
+
+        private void OpenWebsite()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = WebsiteUrl, UseShellExecute = true });
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message, "无法打开网页", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public void Refresh()
@@ -308,7 +334,7 @@ namespace ZhiyuManager
             Controls.Add(footer);
 
             var tabs = new StyledTabControl { Dock = DockStyle.Fill, Padding = new System.Drawing.Point(18, 7) };
-            sections.Add(new ContentSection("资源库", "docs\\resources\\index.md", "<!-- RESOURCE_MANAGER_START -->", "<!-- RESOURCE_MANAGER_END -->", true, root, SetStatus));
+            sections.Add(new ContentSection("资料库", "docs\\resources\\index.md", "<!-- RESOURCE_MANAGER_START -->", "<!-- RESOURCE_MANAGER_END -->", true, root, SetStatus));
             sections.Add(new ContentSection("电子锐评", "docs\\reviews\\index.md", "<!-- REVIEW_MANAGER_START -->", "<!-- REVIEW_MANAGER_END -->", false, root, SetStatus));
             foreach (ContentSection section in sections) tabs.TabPages.Add(section.BuildTab());
             Controls.Add(tabs);
