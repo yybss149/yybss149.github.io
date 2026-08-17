@@ -289,13 +289,96 @@ body:has(.home-hero) .md-content__inner::before {
 .resource-note span { color: #9a75d2; font-size: 1.2rem; }
 .resource-note p { margin: 0; font-size: .9rem; line-height: 1.7; }
 
+/* 电子锐评 */
+.reviews-library { padding: .5rem 0 3rem; }
+
+.review-banner {
+  position: relative;
+  overflow: hidden;
+  margin: .5rem 0 2.5rem;
+  padding: 2.8rem clamp(1.5rem, 5vw, 3.5rem);
+  border-radius: 1.4rem;
+  color: #fff;
+  background:
+    radial-gradient(circle at 86% 14%, rgba(255, 216, 159, .38), transparent 13rem),
+    linear-gradient(118deg, #231329, #73395b 60%, #ba5d6e);
+  box-shadow: 0 16px 40px rgba(102, 34, 69, .2);
+}
+
+.review-banner::after {
+  position: absolute;
+  right: 8%;
+  bottom: -5.6rem;
+  color: rgba(255, 239, 196, .17);
+  content: "⚡";
+  font-size: 13rem;
+  line-height: 1;
+  transform: rotate(12deg);
+}
+
+.review-banner .section-kicker,
+.review-banner h1,
+.review-banner p { position: relative; z-index: 1; }
+.review-banner .section-kicker { color: #ffe2a8; }
+.review-banner h1 { margin: 0; color: #fff; font-size: clamp(2.6rem, 5vw, 4rem); }
+.review-banner p:last-child { margin: .8rem 0 0; color: #fff0f2; }
+
+.reviews-library > h2 { margin: 0 0 1rem; font-size: 1.5rem; }
+
+.review-list ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-list li {
+  position: relative;
+  min-height: 5.2rem;
+  padding: 1.15rem 1.2rem 1.1rem 3rem;
+  border: 1px solid rgba(173, 69, 96, .2);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(255,245,247,.75));
+  box-shadow: 0 10px 25px rgba(112, 43, 73, .07);
+  color: #725a66;
+  line-height: 1.65;
+}
+
+.review-list li::before {
+  position: absolute;
+  top: 1.08rem;
+  left: 1.15rem;
+  color: #d15f76;
+  content: "⚡";
+}
+
+.review-list li strong { display: block; margin-bottom: .18rem; color: #7b2544; font-size: 1rem; }
+
+.review-note {
+  display: flex;
+  gap: .9rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+  padding: 1rem 1.2rem;
+  border: 1px dashed rgba(188, 77, 103, .44);
+  border-radius: .9rem;
+  color: #80626e;
+  background: rgba(255, 239, 243, .62);
+}
+
+.review-note span { color: #ce5a72; font-size: 1.2rem; }
+.review-note p { margin: 0; font-size: .9rem; line-height: 1.7; }
+
 @media screen and (max-width: 44.9375em) {
   .home-hero { min-height: calc(100vh - 4.8rem); background-position: 61% center; }
   .hero-content { padding-bottom: 4rem; text-align: center; }
   .hero-kicker,
   .hero-tagline { white-space: normal; }
   .hero-scroll { right: 1.3rem; }
-  .resource-grid ul { grid-template-columns: 1fr; }
+  .resource-grid ul,
+  .review-list ul { grid-template-columns: 1fr; }
   .resource-banner { padding: 2.2rem 1.4rem; }
 }
 }
