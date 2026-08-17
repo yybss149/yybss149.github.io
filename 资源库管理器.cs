@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,6 +15,43 @@ namespace ZhiyuManager
         public string Title;
         public string Detail;
         public string Url;
+    }
+
+    public class GradientPanel : Panel
+    {
+        public System.Drawing.Color StartColor = System.Drawing.Color.FromArgb(32, 27, 82);
+        public System.Drawing.Color EndColor = System.Drawing.Color.FromArgb(105, 58, 132);
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            using (var brush = new LinearGradientBrush(ClientRectangle, StartColor, EndColor, LinearGradientMode.Horizontal))
+            {
+                e.Graphics.FillRectangle(brush, ClientRectangle);
+            }
+        }
+    }
+
+    public class StyledTabControl : TabControl
+    {
+        public StyledTabControl()
+        {
+            DrawMode = TabDrawMode.OwnerDrawFixed;
+            SizeMode = TabSizeMode.Fixed;
+            ItemSize = new System.Drawing.Size(132, 38);
+            Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold);
+        }
+
+        protected override void OnDrawItem(DrawItemEventArgs e)
+        {
+            var rect = GetTabRect(e.Index);
+            bool selected = e.Index == SelectedIndex;
+            using (var brush = new System.Drawing.SolidBrush(selected ? System.Drawing.Color.FromArgb(67, 52, 143) : System.Drawing.Color.FromArgb(238, 235, 250)))
+            {
+                e.Graphics.FillRectangle(brush, rect);
+            }
+            var color = selected ? System.Drawing.Color.White : System.Drawing.Color.FromArgb(93, 82, 132);
+            TextRenderer.DrawText(e.Graphics, TabPages[e.Index].Text, Font, rect, color, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        }
     }
 
     public class ContentSection
@@ -51,11 +89,12 @@ namespace ZhiyuManager
                 Text = isResource ? "输入网址和备注，名称会自动从网址生成。" : "输入产品名和槽点，写完即可保存。",
                 Dock = DockStyle.Top,
                 Height = 28,
-                ForeColor = System.Drawing.Color.FromArgb(102, 112, 133)
+                ForeColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 170) : System.Drawing.Color.FromArgb(173, 69, 96),
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold)
             };
             tab.Controls.Add(hint);
 
-            var editor = new TableLayoutPanel { Dock = DockStyle.Top, Height = 86, BackColor = System.Drawing.Color.White, Padding = new Padding(14) };
+            var editor = new TableLayoutPanel { Dock = DockStyle.Top, Height = 86, BackColor = System.Drawing.Color.White, Padding = new Padding(14), Margin = new Padding(0, 0, 0, 10) };
             editor.ColumnCount = 3;
             editor.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             editor.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
@@ -63,19 +102,21 @@ namespace ZhiyuManager
             editor.RowCount = 2;
             editor.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             editor.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            editor.Controls.Add(new Label { Text = isResource ? "网址" : "产品名", AutoSize = true }, 0, 0);
-            editor.Controls.Add(new Label { Text = isResource ? "备注" : "槽点", AutoSize = true }, 1, 0);
-            firstInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0) };
-            secondInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0) };
+            editor.Controls.Add(new Label { Text = isResource ? "网址" : "产品名", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(77, 68, 112) }, 0, 0);
+            editor.Controls.Add(new Label { Text = isResource ? "备注" : "槽点", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(77, 68, 112) }, 1, 0);
+            firstInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0), BorderStyle = BorderStyle.FixedSingle, BackColor = System.Drawing.Color.FromArgb(252, 251, 255) };
+            secondInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0), BorderStyle = BorderStyle.FixedSingle, BackColor = System.Drawing.Color.FromArgb(252, 251, 255) };
             editor.Controls.Add(firstInput, 0, 1);
             editor.Controls.Add(secondInput, 1, 1);
-            var add = new Button { Text = isResource ? "添加资源" : "添加锐评", Width = 100, Height = 30, Anchor = AnchorStyles.None, Margin = new Padding(4, 20, 0, 0) };
+            var add = new Button { Text = isResource ? "添加资源" : "添加锐评", Width = 100, Height = 30, Anchor = AnchorStyles.None, Margin = new Padding(4, 20, 0, 0), FlatStyle = FlatStyle.Flat, ForeColor = System.Drawing.Color.White, BackColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 190) : System.Drawing.Color.FromArgb(195, 73, 101) };
+            add.FlatAppearance.BorderSize = 0;
             add.Click += delegate { Add(); };
             editor.Controls.Add(add, 2, 1);
             tab.Controls.Add(editor);
 
             var actions = new Panel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(0, 8, 0, 0) };
-            var remove = new Button { Text = isResource ? "删除选中资源" : "删除选中锐评", Dock = DockStyle.Right, Width = 126 };
+            var remove = new Button { Text = isResource ? "删除选中资源" : "删除选中锐评", Dock = DockStyle.Right, Width = 126, FlatStyle = FlatStyle.Flat, BackColor = System.Drawing.Color.White, ForeColor = System.Drawing.Color.FromArgb(155, 76, 100) };
+            remove.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(229, 197, 207);
             remove.Click += delegate { DeleteSelected(); };
             actions.Controls.Add(remove);
             tab.Controls.Add(actions);
@@ -92,8 +133,16 @@ namespace ZhiyuManager
                 MultiSelect = false,
                 AutoGenerateColumns = false,
                 RowHeadersVisible = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                EnableHeadersVisualStyles = false,
+                BorderStyle = BorderStyle.None,
+                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
+                GridColor = System.Drawing.Color.FromArgb(235, 230, 244)
             };
+            grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle { BackColor = System.Drawing.Color.FromArgb(43, 35, 93), ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold), Alignment = DataGridViewContentAlignment.MiddleLeft };
+            grid.DefaultCellStyle = new DataGridViewCellStyle { BackColor = System.Drawing.Color.White, ForeColor = System.Drawing.Color.FromArgb(64, 55, 92), SelectionBackColor = isResource ? System.Drawing.Color.FromArgb(235, 230, 255) : System.Drawing.Color.FromArgb(255, 231, 237), SelectionForeColor = System.Drawing.Color.FromArgb(57, 44, 92), Padding = new Padding(4, 0, 4, 0) };
+            grid.ColumnHeadersHeight = 38;
+            grid.RowTemplate.Height = 36;
             grid.Columns.Add("title", isResource ? "名称" : "产品名");
             if (isResource) grid.Columns.Add("url", "网址");
             grid.Columns.Add("detail", isResource ? "备注" : "槽点");
@@ -236,7 +285,7 @@ namespace ZhiyuManager
 
         private void BuildInterface()
         {
-            var header = new Panel { Dock = DockStyle.Top, Height = 84, Padding = new Padding(24, 17, 24, 12), BackColor = System.Drawing.Color.FromArgb(31, 27, 80) };
+            var header = new GradientPanel { Dock = DockStyle.Top, Height = 90, Padding = new Padding(24, 17, 24, 12), StartColor = System.Drawing.Color.FromArgb(29, 23, 75), EndColor = System.Drawing.Color.FromArgb(111, 55, 132) };
             Controls.Add(header);
             header.Controls.Add(new Label { Text = "知屿 · 内容管理器", AutoSize = true, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Microsoft YaHei UI", 18F, System.Drawing.FontStyle.Bold), Location = new System.Drawing.Point(24, 16) });
             header.Controls.Add(new Label { Text = "管理资源库与电子锐评；保存后可一键同步到公开网站。", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(225, 220, 255), Location = new System.Drawing.Point(26, 51) });
@@ -251,14 +300,14 @@ namespace ZhiyuManager
             syncButton.Click += delegate { Sync(); };
             header.Controls.Add(syncButton);
 
-            var footer = new Panel { Dock = DockStyle.Bottom, Height = 42, Padding = new Padding(20, 11, 20, 0), BackColor = System.Drawing.Color.White };
+            var footer = new Panel { Dock = DockStyle.Bottom, Height = 42, Padding = new Padding(20, 11, 20, 0), BackColor = System.Drawing.Color.FromArgb(253, 251, 255) };
             status.Text = "选择栏目后即可开始编辑。";
             status.ForeColor = System.Drawing.Color.FromArgb(102, 112, 133);
             status.AutoSize = true;
             footer.Controls.Add(status);
             Controls.Add(footer);
 
-            var tabs = new TabControl { Dock = DockStyle.Fill, Padding = new System.Drawing.Point(18, 7) };
+            var tabs = new StyledTabControl { Dock = DockStyle.Fill, Padding = new System.Drawing.Point(18, 7) };
             sections.Add(new ContentSection("资源库", "docs\\resources\\index.md", "<!-- RESOURCE_MANAGER_START -->", "<!-- RESOURCE_MANAGER_END -->", true, root, SetStatus));
             sections.Add(new ContentSection("电子锐评", "docs\\reviews\\index.md", "<!-- REVIEW_MANAGER_START -->", "<!-- REVIEW_MANAGER_END -->", false, root, SetStatus));
             foreach (ContentSection section in sections) tabs.TabPages.Add(section.BuildTab());
