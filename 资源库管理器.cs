@@ -311,10 +311,11 @@ namespace ZhiyuManager
 
         private void BuildInterface()
         {
-            var header = new GradientPanel { Dock = DockStyle.Top, Height = 90, Padding = new Padding(24, 17, 24, 12), StartColor = System.Drawing.Color.FromArgb(29, 23, 75), EndColor = System.Drawing.Color.FromArgb(111, 55, 132) };
+            // 使用纯色标题栏，避免 Windows 标签控件在渐变底色上出现浅色底块。
+            var header = new Panel { Dock = DockStyle.Top, Height = 90, Padding = new Padding(24, 17, 24, 12), BackColor = System.Drawing.Color.FromArgb(38, 31, 92) };
             Controls.Add(header);
-            header.Controls.Add(new Label { Text = "知屿 · 内容管理器", AutoSize = true, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Microsoft YaHei UI", 18F, System.Drawing.FontStyle.Bold), Location = new System.Drawing.Point(24, 16) });
-            header.Controls.Add(new Label { Text = "管理资源库与电子锐评；保存后可一键同步到公开网站。", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(225, 220, 255), Location = new System.Drawing.Point(26, 51) });
+            header.Controls.Add(new Label { Text = "知屿 · 内容管理器", AutoSize = true, BackColor = header.BackColor, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Microsoft YaHei UI", 18F, System.Drawing.FontStyle.Bold), Location = new System.Drawing.Point(24, 16) });
+            header.Controls.Add(new Label { Text = "管理资料库与电子锐评；保存后可一键同步到公开网站。", AutoSize = true, BackColor = header.BackColor, ForeColor = System.Drawing.Color.FromArgb(235, 231, 255), Location = new System.Drawing.Point(26, 51) });
             syncButton.Text = "同步到网站";
             syncButton.BackColor = System.Drawing.Color.FromArgb(255, 217, 152);
             syncButton.ForeColor = System.Drawing.Color.FromArgb(48, 31, 76);
