@@ -14,6 +14,7 @@ theme:
 
 nav:
   - 资源库: resources/index.md
+  - 电子锐评: reviews/index.md
 
 extra_css:
   - stylesheets/extra.css
