@@ -15,6 +15,7 @@ namespace ZhiyuManager
         public string Title;
         public string Detail;
         public string Url;
+        public string Kind;
     }
 
     public class GradientPanel : Panel
@@ -69,6 +70,9 @@ namespace ZhiyuManager
         private DataGridView grid;
         private TextBox firstInput;
         private TextBox secondInput;
+        private ComboBox typeSelector;
+        private const string SatisfiedStartMarker = "<!-- SATISFIED_MANAGER_START -->";
+        private const string SatisfiedEndMarker = "<!-- SATISFIED_MANAGER_END -->";
 
         public ContentSection(string name, string documentRelativePath, string startMarker, string endMarker, bool isResource, string root, Action<string> setStatus)
         {
@@ -113,24 +117,34 @@ namespace ZhiyuManager
             layout.Controls.Add(hint, 0, 0);
 
             var editor = new TableLayoutPanel { Dock = DockStyle.Top, Height = 86, BackColor = System.Drawing.Color.White, Padding = new Padding(14), Margin = new Padding(0, 0, 0, 10) };
-            editor.ColumnCount = 3;
-            editor.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            editor.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            editor.ColumnCount = isResource ? 3 : 4;
+            editor.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, isResource ? 50 : 35));
+            editor.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, isResource ? 50 : 45));
             editor.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            if (!isResource) editor.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             editor.RowCount = 2;
             editor.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             editor.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             editor.Controls.Add(new Label { Text = isResource ? "网址" : "产品名", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(77, 68, 112) }, 0, 0);
-            editor.Controls.Add(new Label { Text = isResource ? "备注" : "槽点", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(77, 68, 112) }, 1, 0);
+            editor.Controls.Add(new Label { Text = isResource ? "备注" : "评价（尚满意可不写）", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(77, 68, 112) }, 1, 0);
             firstInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0), BorderStyle = BorderStyle.FixedSingle, BackColor = System.Drawing.Color.FromArgb(252, 251, 255) };
             secondInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0), BorderStyle = BorderStyle.FixedSingle, BackColor = System.Drawing.Color.FromArgb(252, 251, 255) };
             editor.Controls.Add(firstInput, 0, 1);
             editor.Controls.Add(secondInput, 1, 1);
+            if (!isResource)
+            {
+                editor.Controls.Add(new Label { Text = "类型", AutoSize = true, ForeColor = System.Drawing.Color.FromArgb(77, 68, 112) }, 2, 0);
+                typeSelector = new ComboBox { Width = 96, DropDownStyle = ComboBoxStyle.DropDownList, Margin = new Padding(0, 5, 8, 0), FlatStyle = FlatStyle.Flat };
+                typeSelector.Items.Add("锐评");
+                typeSelector.Items.Add("尚满意");
+                typeSelector.SelectedIndex = 0;
+                editor.Controls.Add(typeSelector, 2, 1);
+            }
             // 第二行的可用高度有限，使用小间距，避免按钮只露出一条色块。
             var add = new Button { Text = isResource ? "添加资源" : "添加锐评", Width = 100, Height = 28, Anchor = AnchorStyles.None, Margin = new Padding(4, 4, 0, 0), FlatStyle = FlatStyle.Flat, ForeColor = System.Drawing.Color.White, BackColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 190) : System.Drawing.Color.FromArgb(195, 73, 101) };
             add.FlatAppearance.BorderSize = 0;
             add.Click += delegate { Add(); };
-            editor.Controls.Add(add, 2, 1);
+            editor.Controls.Add(add, isResource ? 2 : 3, 1);
             layout.Controls.Add(editor, 0, 1);
 
             var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, WrapContents = false, Padding = new Padding(0, 7, 0, 0), BackColor = tab.BackColor };
@@ -168,7 +182,8 @@ namespace ZhiyuManager
             grid.RowTemplate.Height = 36;
             grid.Columns.Add("title", isResource ? "名称" : "产品名");
             if (isResource) grid.Columns.Add("url", "网址");
-            grid.Columns.Add("detail", isResource ? "备注" : "槽点");
+            else grid.Columns.Add("kind", "类型");
+            grid.Columns.Add("detail", isResource ? "备注" : "评价 / 槽点");
             layout.Controls.Add(new Label
             {
                 Text = isResource ? "网站当前显示的资料" : "网站当前显示的电子锐评",
@@ -200,17 +215,11 @@ namespace ZhiyuManager
             {
                 entries.Clear();
                 string content = File.ReadAllText(DocumentPath, Encoding.UTF8);
-                int start = content.IndexOf(startMarker, StringComparison.Ordinal);
-                int end = content.IndexOf(endMarker, StringComparison.Ordinal);
-                if (start < 0 || end < 0 || end <= start) throw new Exception("找不到“" + Name + "”的内容标记，请不要删除管理器标记。 ");
-                string section = content.Substring(start + startMarker.Length, end - start - startMarker.Length);
-                Regex pattern = isResource
-                    ? new Regex(@"^\s*-\s+\[([^\]]+)\]\(([^)]+)\)：\s*(.*)\s*$")
-                    : new Regex(@"^\s*-\s+\*\*([^*]+)\*\*：\s*(.*)\s*$");
-                foreach (string line in section.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+                if (isResource) ReadResourceEntries(content);
+                else
                 {
-                    Match match = pattern.Match(line);
-                    if (match.Success) entries.Add(new Entry { Title = match.Groups[1].Value, Url = isResource ? match.Groups[2].Value : "", Detail = isResource ? match.Groups[3].Value : match.Groups[2].Value });
+                    ReadReviewEntries(content, startMarker, endMarker, "锐评");
+                    ReadReviewEntries(content, SatisfiedStartMarker, SatisfiedEndMarker, "尚满意");
                 }
                 if (grid != null)
                 {
@@ -218,7 +227,7 @@ namespace ZhiyuManager
                     foreach (Entry entry in entries)
                     {
                         if (isResource) grid.Rows.Add(entry.Title, entry.Url, entry.Detail);
-                        else grid.Rows.Add(entry.Title, entry.Detail);
+                        else grid.Rows.Add(entry.Title, entry.Kind, String.IsNullOrWhiteSpace(entry.Detail) ? "（未填写评价）" : entry.Detail);
                     }
                 }
             }
@@ -228,33 +237,75 @@ namespace ZhiyuManager
             }
         }
 
+        private string GetMarkedSection(string content, string begin, string finish)
+        {
+            int start = content.IndexOf(begin, StringComparison.Ordinal);
+            int end = content.IndexOf(finish, StringComparison.Ordinal);
+            if (start < 0 || end < 0 || end <= start) throw new Exception("找不到“" + Name + "”的内容标记，请不要删除管理器标记。 ");
+            return content.Substring(start + begin.Length, end - start - begin.Length);
+        }
+
+        private void ReadResourceEntries(string content)
+        {
+            Regex pattern = new Regex(@"^\s*-\s+\[([^\]]+)\]\(([^)]+)\)：\s*(.*)\s*$");
+            foreach (string line in GetMarkedSection(content, startMarker, endMarker).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                Match match = pattern.Match(line);
+                if (match.Success) entries.Add(new Entry { Title = match.Groups[1].Value, Url = match.Groups[2].Value, Detail = match.Groups[3].Value });
+            }
+        }
+
+        private void ReadReviewEntries(string content, string begin, string finish, string kind)
+        {
+            // 冒号和评价均为可选项，便于只记录一件“尚满意”的产品。
+            Regex pattern = new Regex(@"^\s*-\s+\*\*([^*]+)\*\*(?:：\s*(.*))?\s*$");
+            foreach (string line in GetMarkedSection(content, begin, finish).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                Match match = pattern.Match(line);
+                if (match.Success) entries.Add(new Entry { Title = match.Groups[1].Value, Detail = match.Groups[2].Success ? match.Groups[2].Value : "", Kind = kind });
+            }
+        }
+
         private void Save()
         {
             string content = File.ReadAllText(DocumentPath, Encoding.UTF8);
-            int start = content.IndexOf(startMarker, StringComparison.Ordinal);
-            int end = content.IndexOf(endMarker, StringComparison.Ordinal);
-            if (start < 0 || end < 0 || end <= start) throw new Exception("找不到“" + Name + "”的内容标记。 ");
+            if (isResource) content = ReplaceMarkedSection(content, startMarker, endMarker, RenderEntries(entries));
+            else
+            {
+                content = ReplaceMarkedSection(content, startMarker, endMarker, RenderEntries(entries.FindAll(delegate(Entry entry) { return entry.Kind == "锐评"; })));
+                content = ReplaceMarkedSection(content, SatisfiedStartMarker, SatisfiedEndMarker, RenderEntries(entries.FindAll(delegate(Entry entry) { return entry.Kind == "尚满意"; })));
+            }
+            File.WriteAllText(DocumentPath, content, new UTF8Encoding(false));
+        }
+
+        private string RenderEntries(List<Entry> items)
+        {
             var builder = new StringBuilder();
-            builder.Append(content.Substring(0, start + startMarker.Length));
-            builder.AppendLine();
-            builder.AppendLine();
-            foreach (Entry entry in entries)
+            foreach (Entry entry in items)
             {
                 if (isResource) builder.AppendLine("- [" + entry.Title + "](" + entry.Url + ")：" + entry.Detail);
+                else if (String.IsNullOrWhiteSpace(entry.Detail)) builder.AppendLine("- **" + entry.Title + "**");
                 else builder.AppendLine("- **" + entry.Title + "**：" + entry.Detail);
             }
-            builder.AppendLine();
-            builder.Append(content.Substring(end));
-            File.WriteAllText(DocumentPath, builder.ToString(), new UTF8Encoding(false));
+            return builder.ToString().TrimEnd('\r', '\n');
+        }
+
+        private string ReplaceMarkedSection(string content, string begin, string finish, string replacement)
+        {
+            int start = content.IndexOf(begin, StringComparison.Ordinal);
+            int end = content.IndexOf(finish, StringComparison.Ordinal);
+            if (start < 0 || end < 0 || end <= start) throw new Exception("找不到“" + Name + "”的内容标记。 ");
+            return content.Substring(0, start + begin.Length) + Environment.NewLine + Environment.NewLine + replacement + Environment.NewLine + Environment.NewLine + content.Substring(end);
         }
 
         private void Add()
         {
             string first = Regex.Replace(firstInput.Text.Trim(), @"\s+", " ");
             string detail = Regex.Replace(secondInput.Text.Trim(), @"\s+", " ");
-            if (String.IsNullOrWhiteSpace(first) || String.IsNullOrWhiteSpace(detail))
+            string kind = !isResource && typeSelector != null ? typeSelector.SelectedItem.ToString() : "";
+            if (String.IsNullOrWhiteSpace(first) || (isResource || kind == "锐评") && String.IsNullOrWhiteSpace(detail))
             {
-                MessageBox.Show("请把两项都填写完整。", "无法添加", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(isResource || kind == "锐评" ? "请把两项都填写完整。" : "请至少填写产品名。", "无法添加", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             try
@@ -270,7 +321,7 @@ namespace ZhiyuManager
                 else
                 {
                     if (first.Contains("*") || detail.Contains("*") || first.Contains("：") || first.Contains(":")) throw new Exception("产品名和槽点中不能包含 *、中文冒号或英文冒号。 ");
-                    entries.Add(new Entry { Title = first, Detail = detail });
+                    entries.Add(new Entry { Title = first, Detail = detail, Kind = kind });
                 }
                 Save();
                 firstInput.Clear();
