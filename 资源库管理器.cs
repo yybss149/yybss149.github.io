@@ -105,7 +105,7 @@ namespace ZhiyuManager
             tab.Controls.Add(layout);
             var hint = new Label
             {
-                Text = isResource ? "输入网址和备注，名称会自动从网址生成。" : "输入产品名和槽点，写完即可保存。",
+                Text = isResource ? "输入网址和备注，名称会自动从网址生成。" : "纯主观无恶意 · 输入产品名和槽点，写完即可保存。",
                 Dock = DockStyle.Fill,
                 ForeColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 170) : System.Drawing.Color.FromArgb(173, 69, 96),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold)
