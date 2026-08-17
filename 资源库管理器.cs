@@ -36,8 +36,10 @@ namespace ZhiyuManager
         public StyledTabControl()
         {
             DrawMode = TabDrawMode.OwnerDrawFixed;
+            Appearance = TabAppearance.FlatButtons;
             SizeMode = TabSizeMode.Fixed;
-            ItemSize = new System.Drawing.Size(132, 38);
+            // 栏目切换由窗口顶部的导航按钮负责，这里只作为内容容器。
+            ItemSize = new System.Drawing.Size(0, 1);
             Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold);
         }
 
@@ -84,16 +86,31 @@ namespace ZhiyuManager
 
         public TabPage BuildTab()
         {
-            var tab = new TabPage(Name) { Padding = new Padding(18), BackColor = System.Drawing.Color.FromArgb(247, 248, 252) };
+            var tab = new TabPage(Name) { Padding = new Padding(0), BackColor = System.Drawing.Color.FromArgb(247, 248, 252) };
+            // 用表格分区固定上方编辑区和下方列表区，避免窗口缩放时按钮被遮住。
+            var layout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = tab.BackColor,
+                Padding = new Padding(18),
+                ColumnCount = 1,
+                RowCount = 5
+            };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 86));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            tab.Controls.Add(layout);
             var hint = new Label
             {
                 Text = isResource ? "输入网址和备注，名称会自动从网址生成。" : "输入产品名和槽点，写完即可保存。",
-                Dock = DockStyle.Top,
-                Height = 28,
+                Dock = DockStyle.Fill,
                 ForeColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 170) : System.Drawing.Color.FromArgb(173, 69, 96),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold)
             };
-            tab.Controls.Add(hint);
+            layout.Controls.Add(hint, 0, 0);
 
             var editor = new TableLayoutPanel { Dock = DockStyle.Top, Height = 86, BackColor = System.Drawing.Color.White, Padding = new Padding(14), Margin = new Padding(0, 0, 0, 10) };
             editor.ColumnCount = 3;
@@ -113,18 +130,18 @@ namespace ZhiyuManager
             add.FlatAppearance.BorderSize = 0;
             add.Click += delegate { Add(); };
             editor.Controls.Add(add, 2, 1);
-            tab.Controls.Add(editor);
+            layout.Controls.Add(editor, 0, 1);
 
-            var actions = new Panel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(0, 8, 0, 0) };
-            var remove = new Button { Text = isResource ? "删除选中资源" : "删除选中锐评", Dock = DockStyle.Right, Width = 126, FlatStyle = FlatStyle.Flat, BackColor = System.Drawing.Color.White, ForeColor = System.Drawing.Color.FromArgb(155, 76, 100) };
+            var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, WrapContents = false, Padding = new Padding(0, 7, 0, 0), BackColor = tab.BackColor };
+            var remove = new Button { Text = isResource ? "删除选中资源" : "删除选中锐评", Width = 126, Height = 30, FlatStyle = FlatStyle.Flat, BackColor = System.Drawing.Color.White, ForeColor = System.Drawing.Color.FromArgb(155, 76, 100), Margin = new Padding(8, 0, 0, 0) };
             remove.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(229, 197, 207);
             remove.Click += delegate { DeleteSelected(); };
             actions.Controls.Add(remove);
-            var openSite = new Button { Text = isResource ? "打开资料库网页" : "打开锐评网页", Dock = DockStyle.Right, Width = 126, FlatStyle = FlatStyle.Flat, BackColor = System.Drawing.Color.FromArgb(246, 243, 255), ForeColor = System.Drawing.Color.FromArgb(91, 72, 163) };
+            var openSite = new Button { Text = isResource ? "打开资料库网页" : "打开锐评网页", Width = 126, Height = 30, FlatStyle = FlatStyle.Flat, BackColor = System.Drawing.Color.FromArgb(246, 243, 255), ForeColor = System.Drawing.Color.FromArgb(91, 72, 163), Margin = new Padding(8, 0, 0, 0) };
             openSite.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(211, 202, 239);
             openSite.Click += delegate { OpenWebsite(); };
             actions.Controls.Add(openSite);
-            tab.Controls.Add(actions);
+            layout.Controls.Add(actions, 0, 2);
 
             grid = new DataGridView
             {
@@ -151,16 +168,15 @@ namespace ZhiyuManager
             grid.Columns.Add("title", isResource ? "名称" : "产品名");
             if (isResource) grid.Columns.Add("url", "网址");
             grid.Columns.Add("detail", isResource ? "备注" : "槽点");
-            tab.Controls.Add(grid);
-            tab.Controls.Add(new Label
+            layout.Controls.Add(new Label
             {
                 Text = isResource ? "网站当前显示的资料" : "网站当前显示的电子锐评",
-                Dock = DockStyle.Top,
-                Height = 30,
+                Dock = DockStyle.Fill,
                 Padding = new Padding(2, 7, 0, 0),
                 ForeColor = System.Drawing.Color.FromArgb(77, 68, 112),
                 Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold)
-            });
+            }, 0, 3);
+            layout.Controls.Add(grid, 0, 4);
             Refresh();
             return tab;
         }
@@ -297,6 +313,9 @@ namespace ZhiyuManager
         private readonly Label status = new Label();
         private readonly Button syncButton = new Button();
         private readonly List<ContentSection> sections = new List<ContentSection>();
+        private StyledTabControl tabs;
+        private Button resourcesNavButton;
+        private Button reviewsNavButton;
 
         public MainForm()
         {
@@ -311,11 +330,25 @@ namespace ZhiyuManager
 
         private void BuildInterface()
         {
+            tabs = new StyledTabControl { Dock = DockStyle.Fill, Padding = new System.Drawing.Point(0, 0) };
+            sections.Add(new ContentSection("资料库", "docs\\resources\\index.md", "<!-- RESOURCE_MANAGER_START -->", "<!-- RESOURCE_MANAGER_END -->", true, root, SetStatus));
+            sections.Add(new ContentSection("电子锐评", "docs\\reviews\\index.md", "<!-- REVIEW_MANAGER_START -->", "<!-- REVIEW_MANAGER_END -->", false, root, SetStatus));
+            foreach (ContentSection section in sections) tabs.TabPages.Add(section.BuildTab());
+
             // 使用纯色标题栏，避免 Windows 标签控件在渐变底色上出现浅色底块。
-            var header = new Panel { Dock = DockStyle.Top, Height = 90, Padding = new Padding(24, 17, 24, 12), BackColor = System.Drawing.Color.FromArgb(38, 31, 92) };
-            Controls.Add(header);
+            var header = new Panel { Dock = DockStyle.Top, Height = 96, Padding = new Padding(24, 17, 24, 12), BackColor = System.Drawing.Color.FromArgb(38, 31, 92) };
             header.Controls.Add(new Label { Text = "知屿 · 内容管理器", AutoSize = true, BackColor = header.BackColor, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Microsoft YaHei UI", 18F, System.Drawing.FontStyle.Bold), Location = new System.Drawing.Point(24, 16) });
             header.Controls.Add(new Label { Text = "管理资料库与电子锐评；保存后可一键同步到公开网站。", AutoSize = true, BackColor = header.BackColor, ForeColor = System.Drawing.Color.FromArgb(235, 231, 255), Location = new System.Drawing.Point(26, 51) });
+
+            var navigation = new FlowLayoutPanel { Location = new System.Drawing.Point(332, 29), Size = new System.Drawing.Size(250, 38), BackColor = header.BackColor, WrapContents = false };
+            resourcesNavButton = CreateNavigationButton("资料库");
+            reviewsNavButton = CreateNavigationButton("电子锐评");
+            resourcesNavButton.Click += delegate { ShowSection(0); };
+            reviewsNavButton.Click += delegate { ShowSection(1); };
+            navigation.Controls.Add(resourcesNavButton);
+            navigation.Controls.Add(reviewsNavButton);
+            header.Controls.Add(navigation);
+
             syncButton.Text = "同步到网站";
             syncButton.BackColor = System.Drawing.Color.FromArgb(255, 217, 152);
             syncButton.ForeColor = System.Drawing.Color.FromArgb(48, 31, 76);
@@ -332,13 +365,44 @@ namespace ZhiyuManager
             status.ForeColor = System.Drawing.Color.FromArgb(102, 112, 133);
             status.AutoSize = true;
             footer.Controls.Add(status);
-            Controls.Add(footer);
 
-            var tabs = new StyledTabControl { Dock = DockStyle.Fill, Padding = new System.Drawing.Point(18, 7) };
-            sections.Add(new ContentSection("资料库", "docs\\resources\\index.md", "<!-- RESOURCE_MANAGER_START -->", "<!-- RESOURCE_MANAGER_END -->", true, root, SetStatus));
-            sections.Add(new ContentSection("电子锐评", "docs\\reviews\\index.md", "<!-- REVIEW_MANAGER_START -->", "<!-- REVIEW_MANAGER_END -->", false, root, SetStatus));
-            foreach (ContentSection section in sections) tabs.TabPages.Add(section.BuildTab());
+            // Dock 顺序固定为：顶部栏、内容区、底部状态栏，彼此不会遮盖。
             Controls.Add(tabs);
+            Controls.Add(footer);
+            Controls.Add(header);
+            ShowSection(0);
+        }
+
+        private Button CreateNavigationButton(string text)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Width = text == "资料库" ? 92 : 112,
+                Height = 32,
+                Margin = new Padding(0, 2, 8, 0),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 0 },
+                Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            return button;
+        }
+
+        private void ShowSection(int index)
+        {
+            if (tabs == null || tabs.TabPages.Count <= index) return;
+            tabs.SelectedIndex = index;
+            StyleNavigationButton(resourcesNavButton, index == 0);
+            StyleNavigationButton(reviewsNavButton, index == 1);
+            SetStatus(index == 0 ? "正在编辑资料库。" : "正在编辑电子锐评。");
+        }
+
+        private void StyleNavigationButton(Button button, bool selected)
+        {
+            if (button == null) return;
+            button.BackColor = selected ? System.Drawing.Color.FromArgb(255, 217, 152) : System.Drawing.Color.FromArgb(59, 49, 122);
+            button.ForeColor = selected ? System.Drawing.Color.FromArgb(48, 31, 76) : System.Drawing.Color.FromArgb(238, 235, 255);
         }
 
         private void SetStatus(string message) { status.Text = message; }
