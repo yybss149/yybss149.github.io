@@ -126,7 +126,8 @@ namespace ZhiyuManager
             secondInput = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 5, 10, 0), BorderStyle = BorderStyle.FixedSingle, BackColor = System.Drawing.Color.FromArgb(252, 251, 255) };
             editor.Controls.Add(firstInput, 0, 1);
             editor.Controls.Add(secondInput, 1, 1);
-            var add = new Button { Text = isResource ? "添加资源" : "添加锐评", Width = 100, Height = 30, Anchor = AnchorStyles.None, Margin = new Padding(4, 20, 0, 0), FlatStyle = FlatStyle.Flat, ForeColor = System.Drawing.Color.White, BackColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 190) : System.Drawing.Color.FromArgb(195, 73, 101) };
+            // 第二行的可用高度有限，使用小间距，避免按钮只露出一条色块。
+            var add = new Button { Text = isResource ? "添加资源" : "添加锐评", Width = 100, Height = 28, Anchor = AnchorStyles.None, Margin = new Padding(4, 4, 0, 0), FlatStyle = FlatStyle.Flat, ForeColor = System.Drawing.Color.White, BackColor = isResource ? System.Drawing.Color.FromArgb(100, 81, 190) : System.Drawing.Color.FromArgb(195, 73, 101) };
             add.FlatAppearance.BorderSize = 0;
             add.Click += delegate { Add(); };
             editor.Controls.Add(add, 2, 1);
@@ -356,7 +357,12 @@ namespace ZhiyuManager
             syncButton.FlatAppearance.BorderSize = 0;
             syncButton.Size = new System.Drawing.Size(116, 34);
             syncButton.Location = new System.Drawing.Point(806, 24);
-            syncButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            // 标题栏在加入窗体后才得到实际宽度；手动计算右边距，避免按钮跑到窗口外。
+            syncButton.Anchor = AnchorStyles.Top;
+            header.Resize += delegate
+            {
+                syncButton.Left = Math.Max(600, header.ClientSize.Width - syncButton.Width - 22);
+            };
             syncButton.Click += delegate { Sync(); };
             header.Controls.Add(syncButton);
 
@@ -370,6 +376,7 @@ namespace ZhiyuManager
             Controls.Add(tabs);
             Controls.Add(footer);
             Controls.Add(header);
+            syncButton.Left = Math.Max(600, header.ClientSize.Width - syncButton.Width - 22);
             ShowSection(0);
         }
 
