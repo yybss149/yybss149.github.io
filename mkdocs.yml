@@ -1,6 +1,9 @@
 site_name: 知屿
 site_description: 知识与好资源的收藏小岛
 
+hooks:
+  - hooks/damage_bundle.py
+
 theme:
   name: material
   language: zh

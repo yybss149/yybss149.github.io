@@ -19,7 +19,7 @@ function show(item){
  byId('description').hidden=true;
  byId('category').textContent=item.category;byId('title').textContent=window.beginnerTopics[game+'.'+item.id][0];byId('description').textContent=item.description;byId('status').textContent=item.status||'通用公式';
  const scope=auditScope[game+'.'+item.id]||['基础公式已对照','所列基础分支已通过外部结果与边界核对；仅计算本次输入已表达的效果。未单列的独立修正默认为 1，角色特殊机制需另行确认。'];
- byId('status').textContent=scope[0];byId('audit-scope').textContent=scope[1];
+ byId('status').textContent=scope[0];if(byId('audit-scope'))byId('audit-scope').textContent=scope[1];
  byId('formula').innerHTML=item.factors.map((f,i)=>`${i?'<b>'+(i===1?'=':'×')+'</b>':''}<span>${f}</span>`).join('');
  byId('formula-note').textContent=item.note;
  byId('details').innerHTML=item.details.map((d,i)=>`<details><summary><span class="index">${String(i+1).padStart(2,'0')}</span><strong>${d[0]}</strong><small>${d[1]}</small></summary><div class="detail-body">${d[2]}</div></details>`).join('');
