@@ -15,6 +15,7 @@ theme:
 nav:
   - 资源库: resources/index.md
   - 电子锐评: reviews/index.md
+  - 伤害计算: damage/index.html
 
 extra_css:
   - stylesheets/extra.css

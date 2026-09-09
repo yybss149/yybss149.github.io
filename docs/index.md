@@ -8,6 +8,9 @@
     <a class="hero-button" href="resources/">
       <span>进入资源库</span><span class="hero-arrow">→</span>
     </a>
+    <a class="hero-button" href="damage/">
+      <span>伤害公式与计算器</span><span class="hero-arrow">→</span>
+    </a>
     <div class="hero-meta"><span>✦ 资源收藏</span><span>⚡ 电子锐评</span></div>
   </div>
   <div class="hero-scroll">SCROLL TO EXPLORE <span>↓</span></div>
