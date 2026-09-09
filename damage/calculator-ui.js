@@ -4,11 +4,12 @@ const api=window.damageCalculator,cache={},container=document.getElementById('ca
 const fmt=n=>n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const precise=n=>Number(n.toPrecision(10)).toLocaleString('zh-CN',{maximumFractionDigits:8});
 const friendlyFields={
+ baseMultiplier:['基础倍率修正（%，默认 100）','普通技能填 100，表示乘 1。仅将明确修正基础倍率的效果填在这里，例如行秋四命生效时填 150；若已把该修正乘进技能倍率，保持 100，避免重复。此项不放大额外加算基础伤害。'],
  stat:['技能引用的属性数值','先读技能说明：写“攻击力的……”就填角色属性页的攻击力；写“生命上限的……”就填生命上限。使用本次攻击发生时的数值。'],
  rate:['技能倍率（%）','技能说明写“攻击力的 200%”，这里填 200。只取本次命中的倍率，不要把多次命中重复计入。'],
  flat:['额外增加的基础伤害','仅填明确额外加入计算起点的伤害数值。不是伤害百分比，也不是已打出的伤害；没有相应效果填 0。'],
  bonus:['本次适用的伤害加成合计（%）','“增伤”就是伤害加成。例如本次同时适用元素伤害 +30%、战技伤害 +20%，填 50。攻击力 +20% 不填这里。'],
- cr:['暴击率（%）','暴击是有概率发生的伤害放大。角色属性详情写 80%，填 80，表示每次有 80% 概率暴击。'],
+ cr:['暴击率（%）','暴击是有概率发生的伤害放大。角色属性详情写 80%，填 80，表示每次有 80% 概率暴击。计算时按 0–100% 限定有效概率，超过 100% 不会继续提高期望伤害。'],
  cd:['暴击伤害（%）','角色属性详情写 160%，填 160。表示暴击时额外增加 160%，最终乘 2.6；不是乘 1.6。'],
  level:['角色等级','在角色资料中查看。涉及元素反应时，填写引起本次反应的角色等级。'],
  enemy:['敌人等级','看敌人信息或对应关卡资料。演算可用默认值；计算实际伤害时要换成实际目标等级。'],
@@ -50,7 +51,7 @@ function fieldInfo(f,key){
  if(f.id==='res'&&key.startsWith('hsr.'))info[1]='需查敌人对本次伤害属性的抗性；降低抗性、穿透另填下一项。默认 10% 只是示例条件，不是所有敌人的固定值。';
  return info;
 }
-function stepList(terms,raw){let running=1;return terms.map((t,i)=>{const before=running;running=i===0?t.value:running*t.value;let name=t.name.replace('期望暴击乘区','按暴击概率取平均').replace('乘区','的影响'),expression=i===0?'从 '+fmt(running)+' 开始':fmt(before)+' × '+precise(t.value)+' → '+fmt(running),explanation='';if(i===0&&['gi.direct','gi.amplify','hsr.direct','hsr.dot'].includes(active)){name='先算技能的基础伤害';expression=`${fmt(Number(raw.stat))} × (${raw.rate} ÷ 100)${Number(raw.flat)?' + '+fmt(Number(raw.flat)):''} → ${fmt(running)}`;}if(t.name==='期望暴击乘区')explanation=`平均倍数 = 1 + (${raw.cr} ÷ 100) × (${raw.cd} ÷ 100) = ${precise(t.value)}`;return `<li><span>${name}</span><strong>${expression}</strong>${explanation?`<small>${explanation}</small>`:''}</li>`;}).join('');}
+function stepList(terms,raw,effectiveCritRate){let running=1;return terms.map((t,i)=>{const before=running;running=i===0?t.value:running*t.value;let name=t.name.replace('期望暴击乘区','按暴击概率取平均').replace('乘区','的影响'),expression=i===0?'从 '+fmt(running)+' 开始':fmt(before)+' × '+precise(t.value)+' → '+fmt(running),explanation='';if(i===0&&['gi.direct','gi.amplify','hsr.direct','hsr.dot'].includes(active)){name='先算技能的基础伤害';expression=`${fmt(Number(raw.stat))} × (${raw.rate} ÷ 100)${raw.baseMultiplier!==undefined&&Number(raw.baseMultiplier)!==100?' × ('+raw.baseMultiplier+' ÷ 100)':''}${Number(raw.flat)?' + '+fmt(Number(raw.flat)):''} → ${fmt(running)}`;}if(t.name==='期望暴击乘区')explanation=`平均倍数 = 1 + (${effectiveCritRate} ÷ 100) × (${raw.cd} ÷ 100) = ${precise(t.value)}`;if(t.name==='期望暴击乘区'&&Number(raw.cr)!==effectiveCritRate)explanation+=`（输入 ${raw.cr}%，有效暴击率按 ${effectiveCritRate}%）`;return `<li><span>${name}</span><strong>${expression}</strong>${explanation?`<small>${explanation}</small>`:''}</li>`;}).join('');}
 const presets={
  'gi.direct':{label:'技能直接伤害（演算样例）',values:{}},
  'gi.amplify':{label:'200 精通反向蒸发',values:{em:200,reactionK:'1.5'}},
@@ -73,7 +74,7 @@ function results(){
  const raw=selectedValues();cache[active]=raw;
  try{
   const r=api.calculate(active,raw);container.querySelector('#calc-error').textContent='';
-  box.innerHTML=`<p class="eyebrow">${r.canCrit?'这一击的结果':'本次结算'}</p><div class="result-main"><span>${active==='hsr.true'?'额外真实伤害':r.canCrit?'期望伤害（长期平均）':'单次伤害'}</span><output>${fmt(r.average)}</output></div>${r.canCrit?`<div class="result-pair"><div><span>未暴击伤害</span><strong>${fmt(r.normal)}</strong></div><div><span>暴击伤害</span><strong>${fmt(r.crit)}</strong></div></div><p class="result-help">游戏中一次显示的伤害看上面两项。平均值表示相同条件下重复攻击的长期平均，不一定是某一次实际打出的数。</p>`:active==='hsr.true'?`<p class="result-help">原伤害 + 真伤合计</p><strong>${fmt(r.total)}</strong>`:'<p class="result-help">这一类伤害通常不使用普通暴击率和暴击伤害。</p>'}<details class="calc-steps"><summary>展开计算过程</summary><ol class="calc-step-list">${stepList(r.terms,raw)}</ol><p>例如乘 1.5 就是提高 50%。过程数字为方便阅读做了舍入，实际计算保留完整精度。</p></details>`;
+  box.innerHTML=`<p class="eyebrow">${r.canCrit?'这一击的结果':'本次结算'}</p><div class="result-main"><span>${active==='hsr.true'?'额外真实伤害':r.canCrit?'期望伤害（长期平均）':'单次伤害'}</span><output>${fmt(r.average)}</output></div>${r.canCrit?`<div class="result-pair"><div><span>未暴击伤害</span><strong>${fmt(r.normal)}</strong></div><div><span>暴击伤害</span><strong>${fmt(r.crit)}</strong></div></div><p class="result-help">游戏中一次显示的伤害看上面两项。平均值表示相同条件下重复攻击的长期平均，不一定是某一次实际打出的数。</p>`:active==='hsr.true'?`<p class="result-help">原伤害 + 真伤合计</p><strong>${fmt(r.total)}</strong>`:'<p class="result-help">这一类伤害通常不使用普通暴击率和暴击伤害。</p>'}<details class="calc-steps"><summary>展开计算过程</summary><ol class="calc-step-list">${stepList(r.terms,raw,r.effectiveCritRate)}</ol><p>例如乘 1.5 就是提高 50%。过程数字为方便阅读做了舍入，实际计算保留完整精度。</p></details>`;
  }catch(error){box.innerHTML='<p class="result-empty">填写完整参数后显示结果</p>';container.querySelector('#calc-error').textContent=error.message;}
 }
 function fields(key){

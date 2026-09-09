@@ -7,7 +7,7 @@ const pct=(id,label,value,min=0,max=100000)=>n(id,label+'（%）',value,min,max)
 const sel=(id,label,value,options)=>({id,label,value,options});
 const group=(title,fields)=>({title,fields});
 const scaling=()=>[n('stat','结算属性值（攻击 / 生命 / 防御）',2000),pct('rate','本段技能倍率',200),n('flat','额外加算基础伤害',0)];
-const critical=()=>[pct('cr','暴击率',80,0,100),pct('cd','暴击伤害',160)];
+const critical=()=>[pct('cr','暴击率',80,0,1000),pct('cd','暴击伤害',160)];
 const resistance=()=>[pct('res','敌人对应抗性',10,-100,1000),pct('resDown','减抗与抗性穿透合计',0)];
 const defense=gi=>[n('level','角色等级',gi?90:80,1,gi?100:80,1),n('enemy','敌人等级',gi?100:95,1,999,1),pct('defDown','减防',0,0,gi?90:100),pct('ignore','无视防御',0,0,100)];
 const ordinary=()=>[pct('bonus','适用增伤合计',50),...critical()];
@@ -34,6 +34,8 @@ add('hsr','elation','欢愉伤害',[group('欢愉参数',[pct('rate','欢愉技�
 add('hsr','true','真实伤害',[group('真实伤害参数',[n('original','符合条件的已结算原伤害',10000),pct('trueRatio','真实伤害比例',30)])],'原伤害已结算防御、抗性与易伤，这里不再重复乘；原伤害中的暴击结果保持原样。');
 for(const key of ['gi.additive'])modes[key].groups.flatMap(g=>g.fields).find(f=>f.id==='level').max=90;
 for(const key of ['gi.direct','gi.amplify','gi.additive'])modes[key].groups.push(giSpecial());
+for(const key of ['gi.direct','gi.amplify','gi.additive'])modes[key].groups[0].fields.splice(2,0,pct('baseMultiplier','基础倍率修正（默认 100%）',100));
+for(const mode of Object.values(modes))if(mode.game==='gi'){const f=mode.groups.flatMap(g=>g.fields).find(f=>f.id==='cr');if(f)f.min=-1000;}
 for(const key of ['hsr.direct','hsr.dot'])modes[key].groups[0].fields.find(f=>f.id==='stat').value=3000;
 modes['hsr.elation'].groups.flatMap(g=>g.fields).find(f=>f.id==='level').min=80;
 function defaults(key){return Object.fromEntries(modes[key].groups.flatMap(g=>g.fields).map(f=>[f.id,f.value]));}
@@ -51,6 +53,7 @@ function calculate(key,raw){
  if(id==='true'){const amount=v.original*p('trueRatio');return {normal:amount,crit:null,average:amount,total:v.original+amount,terms:[{name:'已结算原伤害',value:v.original},{name:'真伤比例',value:p('trueRatio')}],canCrit:false};}
  if(['direct','amplify','additive','dot','lunar'].includes(id))base=v.stat*p('rate')+v.flat;
  if(gi){
+  if(['direct','amplify','additive'].includes(id))base=v.stat*p('rate')*p('baseMultiplier')+v.flat;
   if(id==='additive')base+=Number(v.reactionK)*levels.gi[v.level-1]*(1+5*v.em/(1200+v.em)+p('reactionBonus'));
   if(id==='transform')base=Number(v.reactionK)*levels.gi[v.level-1]*(1+16*v.em/(2000+v.em)+p('reactionBonus'));
   if(id==='lunar')base=Number(v.reactionK)*v.stat*p('rate')*(1+p('lunarBase'))*(1+6*v.em/(2000+v.em)+p('reactionBonus'))+v.flat;
@@ -79,10 +82,10 @@ function calculate(key,raw){
   mult*=term('易伤乘区',1+p('vulnerability'))*term('独立减伤',1-p('reduction'))*term('韧性乘区',Number(v.broken));
   canCrit=['direct','elation'].includes(id);
  }
- const normal=base*mult,crit=canCrit?normal*(1+p('cd')):null,average=canCrit?normal*(1+p('cr')*p('cd')):normal;
+ const critChance=clamp(p('cr'),0,1),normal=base*mult,crit=canCrit?normal*(1+p('cd')):null,average=canCrit?normal*(1+critChance*p('cd')):normal;
  if(![normal,average,crit??0].every(Number.isFinite))throw Error('结果超出可计算范围，请检查输入。');
- if(canCrit)terms.push({name:'期望暴击乘区',value:1+p('cr')*p('cd')});
- return {normal,crit,average,canCrit,terms};
+ if(canCrit)terms.push({name:'期望暴击乘区',value:1+critChance*p('cd')});
+ return {normal,crit,average,canCrit,terms,effectiveCritRate:critChance*100};
 }
 return {modes,defaults,calculate};
 });
